@@ -12,6 +12,10 @@ from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 torch.manual_seed(0)
 
+PATH = '/home/diegushko/dataset/cezanne2photo'
+Weights = '/home/diegushko/checkpoint/cezanne2photo/'
+output = '/home/diegushko/output/cezanne2photo/'
+
 device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
 
 class ImageDataset(Dataset):
@@ -525,7 +529,7 @@ dis_optimizer = torch.optim.Adam(dis_params, lr=1e-4, betas=(0.5, 0.999))
 
 pretrained = False
 if pretrained:
-    pre_dict = torch.load('MUNIT_base.pth')
+    pre_dict = torch.load(Weights + 'MUNIT_base.pth')
     munit.gen_a.load_state_dict(pre_dict['gen_a'])
     munit.gen_b.load_state_dict(pre_dict['gen_b'])
     gen_optimizer.load_state_dict(pre_dict['gen_opt'])
@@ -547,7 +551,7 @@ transform = transforms.Compose([
     transforms.Normalize((0.5), (0.5))
 ])
 dataloader = DataLoader(
-    ImageDataset('ukiyoe2photo', transform),
+    ImageDataset(PATH, transform),
     batch_size=1, pin_memory=True, shuffle=True,
 )
 
@@ -614,7 +618,7 @@ def train(munit, dataloader, optimizers, device):
         if save_model:
             if epoch > 0:
                 numeral = epoch - 1
-                os.remove(f"MUNIT_{numeral}.pth")
+                os.remove(Weights + f"MUNIT_{numeral}.pth")
 
             torch.save({
                 'gen_a': munit.gen_a.state_dict(),
@@ -623,7 +627,7 @@ def train(munit, dataloader, optimizers, device):
                 'disc_a': munit.dis_a.state_dict(),
                 'disc_b': munit.dis_b.state_dict(),
                 'dis_opt': dis_optimizer.state_dict()
-            }, f"MUNIT_{epoch}.pth")
+            }, Weights + f"MUNIT_{epoch}.pth")
             print('Saved weights for iteration {}'.format(epoch))
 
 train(
@@ -631,3 +635,5 @@ train(
     [gen_optimizer, dis_optimizer],
     device,
 )
+
+
