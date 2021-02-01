@@ -551,7 +551,7 @@ with torch.no_grad():
         outputs = munit(cuda_img, cuda_img)
         losses, x_ab, x_ba = outputs[:-2], outputs[-2], outputs[-1]
         real_b = nn.functional.interpolate(cuda_img, size=target_shape)
-        catenation = torch.cat([real_b[:1, ...], x_ba[:1, ...]])
+        catenation = torch.cat([real_b, x_ba])
         image_tensor = (catenation + 1) / 2
         image_shifted = image_tensor
         image_unflat = image_shifted.detach().cpu().view(-1, *(dim_A, target_shape, target_shape))
