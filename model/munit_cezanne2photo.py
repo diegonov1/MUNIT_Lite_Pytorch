@@ -10,20 +10,20 @@ import random
 import os
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
-torch.manual_seed(0)
+torch.manual_seed(42)
 
 PATH = '/home/diegushko/dataset/cezanne2photo'
 Weights = '/home/diegushko/checkpoint/cezanne2photo/'
 output = '/home/diegushko/output/cezanne2photo/'
 
-device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 class ImageDataset(Dataset):
     def __init__(self, root, transform=None, mode='train'):
         super().__init__()
         self.transform = transform
-        self.files_A = sorted(glob.glob(os.path.join(root, '%sA' % mode) + '/*.*'))
-        self.files_B = sorted(glob.glob(os.path.join(root, '%sB' % mode) + '/*.*'))
+        self.files_A = sorted(glob.glob(os.path.join(root, '%sB' % mode) + '/*.*')) #This is switched for art2photo dataset
+        self.files_B = sorted(glob.glob(os.path.join(root, '%sA' % mode) + '/*.*')) #This is switched for art2photo dataset
         if len(self.files_A) > len(self.files_B):
             self.files_A, self.files_B = self.files_B, self.files_A
         self.new_perm()
@@ -568,7 +568,7 @@ def train(munit, dataloader, optimizers, device):
     max_iters = 1000000
     decay_every = 100000
     cur_iter = 0
-    epochs = 1000
+    epochs = 300
 
     display_every = 500
     mean_losses = [0., 0.]
@@ -586,7 +586,7 @@ def train(munit, dataloader, optimizers, device):
             # If you're running older versions of torch, comment this out
             # and use NVIDIA apex for mixed/half precision training
             if has_autocast:
-                with torch.cuda.amp.autocast(enabled=(device=='cuda:1')):
+                with torch.cuda.amp.autocast(enabled=(device=='cuda:0')):
                     outputs = munit(x_a, x_b)
             else:
                 outputs = munit(x_a, x_b)
@@ -618,7 +618,7 @@ def train(munit, dataloader, optimizers, device):
         if save_model:
             if epoch > 0:
                 numeral = epoch - 1
-                os.remove(Weights + f"MUNIT_{numeral}.pth")
+                os.remove(Weights + f"MUNIT_{numeral}_FLatent.pth")
 
             torch.save({
                 'gen_a': munit.gen_a.state_dict(),
@@ -627,7 +627,7 @@ def train(munit, dataloader, optimizers, device):
                 'disc_a': munit.dis_a.state_dict(),
                 'disc_b': munit.dis_b.state_dict(),
                 'dis_opt': dis_optimizer.state_dict()
-            }, Weights + f"MUNIT_{epoch}.pth")
+            }, Weights + f"MUNIT_{epoch}_FLatent.pth")
             print('Saved weights for iteration {}'.format(epoch))
 
 train(
