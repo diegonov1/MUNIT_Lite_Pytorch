@@ -504,7 +504,7 @@ dis_optimizer = torch.optim.Adam(dis_params, lr=1e-4, betas=(0.5, 0.999))
 
 pretrained = True
 if pretrained:
-    pre_dict = torch.load(weights_ + 'MUNIT_base.pth')
+    pre_dict = torch.load(weights_ + 'MUNIT_999.pth')
     munit.gen_a.load_state_dict(pre_dict['gen_a'])
     munit.gen_b.load_state_dict(pre_dict['gen_b'])
     gen_optimizer.load_state_dict(pre_dict['gen_opt'])
