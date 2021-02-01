@@ -533,16 +533,13 @@ class CustomDataSet(Dataset):
         img_loc = os.path.join(self.main_dir, self.total_imgs[idx])
         image = Image.open(img_loc).convert("RGB")
         tensor_image = self.transform(image)
-        return tensor_image
+        return (tensor_image - 0.5) * 2
 
 dim_A = 3
 target_shape = 256
-means = np.array((0.5, 0.5, 0.5))
-stds = np.array((0.5, 0.5, 0.5))
 
 transform_test = transforms.Compose([transforms.Resize((256, 256)),
-                               transforms.ToTensor(),
-                               transforms.Normalize(means, stds)
+                               transforms.ToTensor()
                                ])
 
 test_set = CustomDataSet(test_path, transform=transform_test)
@@ -560,5 +557,5 @@ with torch.no_grad():
         image_unflat = image_shifted.detach().cpu().view(-1, *(dim_A, target_shape, target_shape))
         image_grid = make_grid(image_unflat[:25], nrow=5)
         plt.imshow(image_grid.permute(1, 2, 0).squeeze())
-        plt.savefig(output_ + f'figure_{idx}.png')
+        plt.savefig(output_ + f'figure_{idx}_rev.png')
         #plt.show()
