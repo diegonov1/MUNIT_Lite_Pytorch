@@ -16,7 +16,7 @@ PATH = '/home/diegushko/dataset/cezanne2photo'
 Weights = '/home/diegushko/checkpoint/cezanne2photo/'
 output = '/home/diegushko/output/cezanne2photo/'
 
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
 
 class ImageDataset(Dataset):
     def __init__(self, root, transform=None, mode='train'):
@@ -586,7 +586,7 @@ def train(munit, dataloader, optimizers, device):
             # If you're running older versions of torch, comment this out
             # and use NVIDIA apex for mixed/half precision training
             if has_autocast:
-                with torch.cuda.amp.autocast(enabled=(device=='cuda:0')):
+                with torch.cuda.amp.autocast(enabled=(device=='cuda:1')):
                     outputs = munit(x_a, x_b)
             else:
                 outputs = munit(x_a, x_b)
