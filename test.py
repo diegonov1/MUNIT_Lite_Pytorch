@@ -504,7 +504,7 @@ dis_optimizer = torch.optim.Adam(dis_params, lr=1e-4, betas=(0.5, 0.999))
 
 pretrained = True
 if pretrained:
-    pre_dict = torch.load(weights_ + 'MUNIT_299_c32s8.pth')
+    pre_dict = torch.load(weights_ + 'MUNIT_299_c48s8.pth')
     munit.gen_a.load_state_dict(pre_dict['gen_a'])
     munit.gen_b.load_state_dict(pre_dict['gen_b'])
     gen_optimizer.load_state_dict(pre_dict['gen_opt'])
@@ -557,5 +557,5 @@ with torch.no_grad():
         image_unflat = image_shifted.detach().cpu().view(-1, *(dim_A, target_shape, target_shape))
         image_grid = make_grid(image_unflat[:25], nrow=5)
         plt.imshow(image_grid.permute(1, 2, 0).squeeze())
-        plt.savefig(output_ + f'figure_{idx}_c32s8.png')
+        plt.savefig(output_ + f'figure_{idx}_c48s8.png')
         #plt.show()

@@ -324,7 +324,7 @@ class Generator(nn.Module):
 
     def __init__(
         self,
-        base_channels: int = 32, #Changed from 64 to 32 <=====
+        base_channels: int = 48, #Changed from 64 to 48 <=====
         n_c_downsample: int = 2,
         n_s_downsample: int = 4,
         n_res_blocks: int = 4,
@@ -618,7 +618,7 @@ def train(munit, dataloader, optimizers, device):
         if save_model:
             if epoch > 0:
                 numeral = epoch - 1
-                os.remove(Weights + f"MUNIT_{numeral}_c32s8.pth")
+                os.remove(Weights + f"MUNIT_{numeral}_c48s8.pth")
 
             torch.save({
                 'gen_a': munit.gen_a.state_dict(),
@@ -627,7 +627,7 @@ def train(munit, dataloader, optimizers, device):
                 'disc_a': munit.dis_a.state_dict(),
                 'disc_b': munit.dis_b.state_dict(),
                 'dis_opt': dis_optimizer.state_dict()
-            }, Weights + f"MUNIT_{epoch}_c32s8.pth")
+            }, Weights + f"MUNIT_{epoch}_c48s8.pth")
             print('Saved weights for iteration {}'.format(epoch))
 
 train(
