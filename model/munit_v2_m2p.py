@@ -28,7 +28,7 @@ from torch.autograd import Variable
 device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
 
 PATH = '/home/diegushko/dataset/'
-Weights = '/home/diegushko/checkpoint/monet2photo/'
+weights_ = '/home/diegushko/checkpoint/monet2photo/'
 
 epoch = 0
 n_epochs = 300
@@ -417,13 +417,16 @@ if cuda:
 pretrained = False
 
 if pretrained:
-    pre_dict = torch.load(weights_ + 'MUNIT_v2_base.pth')#, map_location='cuda:0')
+    pre_dict = torch.load(weights_ + 'MUNIT_v2_299.pth')#, map_location='cuda:0')
     Enc1.load_state_dict(pre_dict['Enc1'])
     Dec1.load_state_dict(pre_dict['Dec1'])
     Enc2.load_state_dict(pre_dict['Enc2'])
     Dec2.load_state_dict(pre_dict['Dec2'])
     D1.load_state_dict(pre_dict['D1'])
     D2.load_state_dict(pre_dict['D2'])
+    optimizer_G.load_state_dict(pre_dict['opt_G'])
+    optimizer_D1.load_state_dict(pre_dict['opt_D1'])
+    optimizer_D2.load_state_dict(pre_dict['opt_D2'])
 
 else:
     # Initialize weights
@@ -605,7 +608,7 @@ for epoch in range(epoch, n_epochs):
     if save_model:
         if epoch > 0:
             numeral = epoch - 1
-            os.remove(Weights + f"MUNIT_v2_{numeral}.pth")
+            os.remove(weights_ + f"MUNIT_v2_{numeral}.pth")
 
     torch.save({
         'Enc1': Enc1.state_dict(),
@@ -613,8 +616,11 @@ for epoch in range(epoch, n_epochs):
         'Enc2': Enc2.state_dict(),
         'Dec2': Dec2.state_dict(),
         'D1': D1.state_dict(),
-        'D2': D2.state_dict()
-    }, Weights + f"MUNIT_v2_{epoch}.pth")
+        'D2': D2.state_dict(),
+        'opt_G': optimizer_G.state_dict(),
+        'opt_D1': optimizer_D1.state_dict(),
+        'opt_D2': optimizer_D2.state_dict()
+        }, weights_ + f"MUNIT_v2_{epoch}.pth")
 
 
 
