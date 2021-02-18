@@ -31,7 +31,7 @@ PATH = '/home/diegushko/dataset/'
 weights_ = '/home/diegushko/checkpoint/monet2photo/'
 
 epoch = 0
-n_epochs = 300
+n_epochs = 500
 dataset_name = "monet2photo"
 batch_size = 1
 lr = 0.0001
@@ -414,6 +414,15 @@ if cuda:
     D2 = D2.to(device)
     criterion_recon.to(device)
 
+# Optimizers
+optimizer_G = torch.optim.Adam(
+    itertools.chain(Enc1.parameters(), Dec1.parameters(), Enc2.parameters(), Dec2.parameters()),
+    lr=lr,
+    betas=(b1, b2),
+)
+optimizer_D1 = torch.optim.Adam(D1.parameters(), lr=lr, betas=(b1, b2))
+optimizer_D2 = torch.optim.Adam(D2.parameters(), lr=lr, betas=(b1, b2))
+
 pretrained = False
 
 if pretrained:
@@ -443,15 +452,6 @@ lambda_id = 10
 lambda_style = 1
 lambda_cont = 1
 lambda_cyc = 0
-
-# Optimizers
-optimizer_G = torch.optim.Adam(
-    itertools.chain(Enc1.parameters(), Dec1.parameters(), Enc2.parameters(), Dec2.parameters()),
-    lr=lr,
-    betas=(b1, b2),
-)
-optimizer_D1 = torch.optim.Adam(D1.parameters(), lr=lr, betas=(b1, b2))
-optimizer_D2 = torch.optim.Adam(D2.parameters(), lr=lr, betas=(b1, b2))
 
 # Learning rate update schedulers
 lr_scheduler_G = torch.optim.lr_scheduler.LambdaLR(
