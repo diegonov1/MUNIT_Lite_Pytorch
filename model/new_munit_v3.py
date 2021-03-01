@@ -30,18 +30,18 @@ import torchvision.utils as vutils
 from torch.utils.data import DataLoader
 
 
-checkpoint_directory = '/content/drive/MyDrive/checkpoint/munit/monet2photo'
-image_directory = '/content/drive/MyDrive/checkpoint/munit/m2p_sample_images' #output images
+checkpoint_directory = '/home/diegushko/checkpoint/monet2photo'
+image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_images' #output images
 
 device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
 
 
 params = {
 # logger options
-'image_save_iter': 100000,       # How often do you want to save output images during training
+'image_save_iter': 50000,       # How often do you want to save output images during training
 'image_display_iter': 100,       # How often do you want to display output images during training
 'display_size': 16,              # How many images do you want to display each time
-'snapshot_save_iter': 100,    # How often do you want to save trained models
+'snapshot_save_iter': 10000,    # How often do you want to save trained models
 'log_iter': 1,                   # How often do you want to log the training stats
 
 # optimization options
@@ -90,7 +90,7 @@ params = {
 'new_size': 256,                               # first resize the shortest image side to this size
 'crop_image_height': 256,                      # random crop image of this height
 'crop_image_width': 256,                       # random crop image of this width
-'data_root': '/content/drive/MyDrive/datasets/image2image/monet2photo'   # dataset folder location
+'data_root': '/home/diegushko/dataset/monet2photo'   # dataset folder location
 }
 
 IMG_EXTENSIONS = [
