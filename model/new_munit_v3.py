@@ -967,6 +967,8 @@ train_display_images_b = torch.stack([train_loader_b.dataset[i] for i in range(d
 test_display_images_a = torch.stack([test_loader_a.dataset[i] for i in range(display_size)]).to(device)
 test_display_images_b = torch.stack([test_loader_b.dataset[i] for i in range(display_size)]).to(device)
 
+train_resume = False
+
 iterations = trainer.resume(checkpoint_directory, hyperparameters=params) if train_resume else 0
 
 while True:
