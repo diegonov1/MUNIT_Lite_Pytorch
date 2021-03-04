@@ -43,6 +43,7 @@ params = {
 'display_size': 16,              # How many images do you want to display each time
 'snapshot_save_iter': 10000,    # How often do you want to save trained models
 'log_iter': 1,                   # How often do you want to log the training stats
+'vgg_model_path': '/home/diegushko/checkpoint/vgg',
 
 # optimization options
 'max_iter': 1000000,             # maximum number of training iterations
@@ -60,7 +61,7 @@ params = {
 'recon_s_w': 1,                  # weight of style reconstruction loss
 'recon_c_w': 1,                  # weight of content reconstruction loss
 'recon_x_cyc_w': 0,              # weight of explicit style augmented cycle consistency loss
-'vgg_w': 0,                      # weight of domain-invariant perceptual loss
+'vgg_w': 1,                      # weight of domain-invariant perceptual loss
 
 # model options
 'gen': {
@@ -116,6 +117,88 @@ def make_dataset(dir):
                 images.append(path)
 
     return images
+
+##################################################################################
+# VGG network definition
+##################################################################################
+class Vgg16(nn.Module):
+    def __init__(self):
+        super(Vgg16, self).__init__()
+        self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
+        self.conv1_2 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
+
+        self.conv2_1 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.conv2_2 = nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1)
+
+        self.conv3_1 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
+        self.conv3_2 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
+        self.conv3_3 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
+
+        self.conv4_1 = nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1)
+        self.conv4_2 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
+        self.conv4_3 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
+
+        self.conv5_1 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
+        self.conv5_2 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
+        self.conv5_3 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
+
+    def forward(self, X):
+        h = F.relu(self.conv1_1(X), inplace=True)
+        h = F.relu(self.conv1_2(h), inplace=True)
+        # relu1_2 = h
+        h = F.max_pool2d(h, kernel_size=2, stride=2)
+
+        h = F.relu(self.conv2_1(h), inplace=True)
+        h = F.relu(self.conv2_2(h), inplace=True)
+        # relu2_2 = h
+        h = F.max_pool2d(h, kernel_size=2, stride=2)
+
+        h = F.relu(self.conv3_1(h), inplace=True)
+        h = F.relu(self.conv3_2(h), inplace=True)
+        h = F.relu(self.conv3_3(h), inplace=True)
+        # relu3_3 = h
+        h = F.max_pool2d(h, kernel_size=2, stride=2)
+
+        h = F.relu(self.conv4_1(h), inplace=True)
+        h = F.relu(self.conv4_2(h), inplace=True)
+        h = F.relu(self.conv4_3(h), inplace=True)
+        # relu4_3 = h
+
+        h = F.relu(self.conv5_1(h), inplace=True)
+        h = F.relu(self.conv5_2(h), inplace=True)
+        h = F.relu(self.conv5_3(h), inplace=True)
+        relu5_3 = h
+
+        return relu5_3
+        # return [relu1_2, relu2_2, relu3_3, relu4_3]
+
+def load_vgg16(model_dir):
+    """ Use the model from https://github.com/abhiskk/fast-neural-style/blob/master/neural_style/utils.py """
+    if not os.path.exists(model_dir):
+        os.mkdir(model_dir)
+    if not os.path.exists(os.path.join(model_dir, 'vgg16.weight')):
+        if not os.path.exists(os.path.join(model_dir, 'vgg16.t7')):
+            os.system('wget https://www.dropbox.com/s/76l3rt4kyi3s8x7/vgg16.t7?dl=1 -O ' + os.path.join(model_dir, 'vgg16.t7'))
+        vgglua = load_lua(os.path.join(model_dir, 'vgg16.t7'))
+        vgg = Vgg16()
+        for (src, dst) in zip(vgglua.parameters()[0], vgg.parameters()):
+            dst.data[:] = src
+        torch.save(vgg.state_dict(), os.path.join(model_dir, 'vgg16.weight'))
+    vgg = Vgg16()
+    vgg.load_state_dict(torch.load(os.path.join(model_dir, 'vgg16.weight')))
+    return vgg
+
+def vgg_preprocess(batch):
+    tensortype = type(batch.data)
+    (r, g, b) = torch.chunk(batch, 3, dim = 1)
+    batch = torch.cat((b, g, r), dim = 1) # convert RGB to BGR
+    batch = (batch + 1) * 255 * 0.5 # [-1, 1] -> [0, 255]
+    mean = tensortype(batch.data.size()).cuda()
+    mean[:, 0, :, :] = 103.939
+    mean[:, 1, :, :] = 116.779
+    mean[:, 2, :, :] = 123.680
+    batch = batch.sub(Variable(mean)) # subtract mean
+    return batch
 
 class ImageFolder(data.Dataset):
 
@@ -670,12 +753,12 @@ class MUNIT_Trainer(nn.Module):
         beta2 = params['beta2']
         dis_params = list(self.dis_a.parameters()) + list(self.dis_b.parameters())
         gen_params = list(self.gen_a.parameters()) + list(self.gen_b.parameters())
+        self.dis_scheduler = get_scheduler(self.dis_opt, params)
+        self.gen_scheduler = get_scheduler(self.gen_opt, params)
         self.dis_opt = torch.optim.Adam([p for p in dis_params if p.requires_grad],
                                         lr=lr, betas=(beta1, beta2), weight_decay=params['weight_decay'])
         self.gen_opt = torch.optim.Adam([p for p in gen_params if p.requires_grad],
                                         lr=lr, betas=(beta1, beta2), weight_decay=params['weight_decay'])
-        self.dis_scheduler = get_scheduler(self.dis_opt, params)
-        self.gen_scheduler = get_scheduler(self.gen_opt, params)
 
         # Network weight initialization
         self.apply(weights_init(params['init']))
@@ -684,7 +767,7 @@ class MUNIT_Trainer(nn.Module):
 
         # Load VGG model if needed
         if 'vgg_w' in params.keys() and params['vgg_w'] > 0:
-            self.vgg = load_vgg16(params['vgg_model_path'] + '/models')
+            self.vgg = load_vgg16(params['vgg_model_path'])
             self.vgg.eval()
             for param in self.vgg.parameters():
                 param.requires_grad = False
@@ -819,7 +902,7 @@ class MUNIT_Trainer(nn.Module):
         self.dis_a.load_state_dict(state_dict['a'])
         self.dis_b.load_state_dict(state_dict['b'])
         # Load optimizers
-        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer.pt'))
+        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer_vgg.pt'))
         self.dis_opt.load_state_dict(state_dict['dis'])
         self.gen_opt.load_state_dict(state_dict['gen'])
         # Reinitilize schedulers
@@ -830,9 +913,9 @@ class MUNIT_Trainer(nn.Module):
 
     def save(self, snapshot_dir, iterations):
         # Save generators, discriminators, and optimizers
-        gen_name = os.path.join(snapshot_dir, 'gen_%08d.pt' % (iterations + 1))
-        dis_name = os.path.join(snapshot_dir, 'dis_%08d.pt' % (iterations + 1))
-        opt_name = os.path.join(snapshot_dir, 'optimizer.pt')
+        gen_name = os.path.join(snapshot_dir, 'gen_vgg_%08d.pt' % (iterations + 1))
+        dis_name = os.path.join(snapshot_dir, 'dis_vgg_%08d.pt' % (iterations + 1))
+        opt_name = os.path.join(snapshot_dir, 'optimizer_vgg.pt')
         torch.save({'a': self.gen_a.state_dict(), 'b': self.gen_b.state_dict()}, gen_name)
         torch.save({'a': self.dis_a.state_dict(), 'b': self.dis_b.state_dict()}, dis_name)
         torch.save({'gen': self.gen_opt.state_dict(), 'dis': self.dis_opt.state_dict()}, opt_name)
@@ -950,8 +1033,8 @@ def __write_images(image_outputs, display_image_num, file_name):
 
 def write_2images(image_outputs, display_image_num, image_directory, postfix):
     n = len(image_outputs)
-    __write_images(image_outputs[0:n//2], display_image_num, '%s/gen_a2b_%s.jpg' % (image_directory, postfix))
-    __write_images(image_outputs[n//2:n], display_image_num, '%s/gen_b2a_%s.jpg' % (image_directory, postfix))
+    __write_images(image_outputs[0:n//2], display_image_num, '%s/gen_a2b_vgg_%s.jpg' % (image_directory, postfix))
+    __write_images(image_outputs[n//2:n], display_image_num, '%s/gen_b2a_vgg_%s.jpg' % (image_directory, postfix))
 
 
 max_iter = params['max_iter']
@@ -973,7 +1056,7 @@ iterations = trainer.resume(checkpoint_directory, hyperparameters=params) if tra
 
 while True:
     for it, (images_a, images_b) in enumerate(zip(train_loader_a, train_loader_b)):
-        trainer.update_learning_rate()
+
         images_a, images_b = images_a.to(device).detach(), images_b.to(device).detach()
 
         with Timer("Elapsed time in update: %f"):
@@ -981,6 +1064,8 @@ while True:
             trainer.dis_update(images_a, images_b, params)
             trainer.gen_update(images_a, images_b, params)
             torch.cuda.synchronize()
+
+        trainer.update_learning_rate()
 
         # Dump training stats in log file
         if (iterations + 1) % params['log_iter'] == 0:
@@ -992,8 +1077,8 @@ while True:
             with torch.no_grad():
                 test_image_outputs = trainer.sample(test_display_images_a, test_display_images_b)
                 train_image_outputs = trainer.sample(train_display_images_a, train_display_images_b)
-            write_2images(test_image_outputs, display_size, image_directory, 'test_%08d' % (iterations + 1))
-            write_2images(train_image_outputs, display_size, image_directory, 'train_%08d' % (iterations + 1))
+            write_2images(test_image_outputs, display_size, image_directory, 'test_vgg_%08d' % (iterations + 1))
+            write_2images(train_image_outputs, display_size, image_directory, 'train_vgg_%08d' % (iterations + 1))
             # HTML
             #write_html(output_directory + "/index.html", iterations + 1, params['image_save_iter'], 'images')
 
@@ -1007,8 +1092,8 @@ while True:
             trainer.save(checkpoint_directory, iterations)
             itera = iterations - (params['snapshot_save_iter'] - 1)
             if itera > 0:
-                os.remove(checkpoint_directory + '/gen_%08d.pt' % (itera))
-                os.remove(checkpoint_directory + '/dis_%08d.pt' % (itera))
+                os.remove(checkpoint_directory + '/gen_vgg_%08d.pt' % (itera))
+                os.remove(checkpoint_directory + '/dis_vgg_%08d.pt' % (itera))
 
         iterations += 1
         if iterations >= max_iter:
