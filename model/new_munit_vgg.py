@@ -193,7 +193,7 @@ def vgg_preprocess(batch):
     (r, g, b) = torch.chunk(batch, 3, dim = 1)
     batch = torch.cat((b, g, r), dim = 1) # convert RGB to BGR
     batch = (batch + 1) * 255 * 0.5 # [-1, 1] -> [0, 255]
-    mean = tensortype(batch.data.size()).cuda()
+    mean = tensortype(batch.data.size()).to(device)
     mean[:, 0, :, :] = 103.939
     mean[:, 1, :, :] = 116.779
     mean[:, 2, :, :] = 123.680
@@ -753,12 +753,14 @@ class MUNIT_Trainer(nn.Module):
         beta2 = params['beta2']
         dis_params = list(self.dis_a.parameters()) + list(self.dis_b.parameters())
         gen_params = list(self.gen_a.parameters()) + list(self.gen_b.parameters())
-        self.dis_scheduler = get_scheduler(self.dis_opt, params)
-        self.gen_scheduler = get_scheduler(self.gen_opt, params)
+
         self.dis_opt = torch.optim.Adam([p for p in dis_params if p.requires_grad],
                                         lr=lr, betas=(beta1, beta2), weight_decay=params['weight_decay'])
         self.gen_opt = torch.optim.Adam([p for p in gen_params if p.requires_grad],
                                         lr=lr, betas=(beta1, beta2), weight_decay=params['weight_decay'])
+
+        self.dis_scheduler = get_scheduler(self.dis_opt, params)
+        self.gen_scheduler = get_scheduler(self.gen_opt, params)
 
         # Network weight initialization
         self.apply(weights_init(params['init']))
@@ -1098,3 +1100,4 @@ while True:
         iterations += 1
         if iterations >= max_iter:
             sys.exit('Finish training')
+
