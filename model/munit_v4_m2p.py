@@ -25,7 +25,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torch.autograd import Variable
 
-device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+device = 'cuda:2' if torch.cuda.is_available() else 'cpu'
 
 PATH = '/home/diegushko/dataset/'
 weights_ = '/home/diegushko/checkpoint/monet2photo/'

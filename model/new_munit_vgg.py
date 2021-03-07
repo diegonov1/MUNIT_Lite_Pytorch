@@ -30,7 +30,7 @@ import torchvision.utils as vutils
 from torch.utils.data import DataLoader
 
 
-checkpoint_directory = '/home/diegushko/checkpoint/monet2photo'
+checkpoint_directory = '/home/diegushko/checkpoint/cezanne2photo'
 image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_images' #output images
 
 device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
@@ -38,7 +38,7 @@ device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
 
 params = {
 # logger options
-'image_save_iter': 50000,       # How often do you want to save output images during training
+'image_save_iter': 20000,       # How often do you want to save output images during training
 'image_display_iter': 100,       # How often do you want to display output images during training
 'display_size': 16,              # How many images do you want to display each time
 'snapshot_save_iter': 10000,    # How often do you want to save trained models
@@ -46,7 +46,7 @@ params = {
 'vgg_model_path': '/home/diegushko/checkpoint/vgg',
 
 # optimization options
-'max_iter': 1000000,             # maximum number of training iterations
+'max_iter': 200000,             # maximum number of training iterations
 'batch_size': 1,                 # batch size
 'weight_decay': 0.0001,          # weight decay
 'beta1': 0.5,                    # Adam parameter
@@ -66,7 +66,7 @@ params = {
 # model options
 'gen': {
 'dim': 64,                         # number of filters in the bottommost layer
-'mlp_dim': 256,                    # number of filters in MLP
+'mlp_dim': 384,                    # number of filters in MLP
 'style_dim': 8,                    # length of style code
 'activ': 'relu',                   # activation function [relu/lrelu/prelu/selu/tanh]
 'n_downsample': 2,                 # number of downsampling layers in content encoder
@@ -88,10 +88,10 @@ params = {
 'input_dim_a': 3,                              # number of image channels [1/3]
 'input_dim_b': 3,                              # number of image channels [1/3]
 'num_workers': 8,                              # number of data loading threads
-'new_size': 256,                               # first resize the shortest image side to this size
-'crop_image_height': 256,                      # random crop image of this height
-'crop_image_width': 256,                       # random crop image of this width
-'data_root': '/home/diegushko/dataset/monet2photo'   # dataset folder location
+'new_size': 384,                               # first resize the shortest image side to this size
+'crop_image_height': 384,                      # random crop image of this height
+'crop_image_width': 384,                       # random crop image of this width
+'data_root': '/home/diegushko/dataset/cezanne2photo'   # dataset folder location
 }
 
 IMG_EXTENSIONS = [
@@ -894,17 +894,17 @@ class MUNIT_Trainer(nn.Module):
     def resume(self, checkpoint_dir, params):
         # Load generators
         last_model_name = get_model_list(checkpoint_dir, "gen")
-        state_dict = torch.load(last_model_name)
+        state_dict = torch.load(last_model_name, map_location='cuda:1')
         self.gen_a.load_state_dict(state_dict['a'])
         self.gen_b.load_state_dict(state_dict['b'])
         iterations = int(last_model_name[-11:-3])
         # Load discriminators
         last_model_name = get_model_list(checkpoint_dir, "dis")
-        state_dict = torch.load(last_model_name)
+        state_dict = torch.load(last_model_name, map_location='cuda:1')
         self.dis_a.load_state_dict(state_dict['a'])
         self.dis_b.load_state_dict(state_dict['b'])
         # Load optimizers
-        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer_vgg.pt'))
+        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer_vgg.pt'), map_location='cuda:1')
         self.dis_opt.load_state_dict(state_dict['dis'])
         self.gen_opt.load_state_dict(state_dict['gen'])
         # Reinitilize schedulers
@@ -1052,7 +1052,18 @@ train_display_images_b = torch.stack([train_loader_b.dataset[i] for i in range(d
 test_display_images_a = torch.stack([test_loader_a.dataset[i] for i in range(display_size)]).to(device)
 test_display_images_b = torch.stack([test_loader_b.dataset[i] for i in range(display_size)]).to(device)
 
-train_resume = False
+def get_model_list(dirname, key):
+    if os.path.exists(dirname) is False:
+        return None
+    gen_models = [os.path.join(dirname, f) for f in os.listdir(dirname) if
+                  os.path.isfile(os.path.join(dirname, f)) and key in f and ".pt" in f]
+    if gen_models is None:
+        return None
+    gen_models.sort()
+    last_model_name = gen_models[-1]
+    return last_model_name
+
+train_resume = True
 
 iterations = trainer.resume(checkpoint_directory, hyperparameters=params) if train_resume else 0
 
@@ -1065,7 +1076,7 @@ while True:
             # Main training code
             trainer.dis_update(images_a, images_b, params)
             trainer.gen_update(images_a, images_b, params)
-            torch.cuda.synchronize()
+            #torch.cuda.synchronize()
 
         trainer.update_learning_rate()
 
