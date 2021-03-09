@@ -1065,7 +1065,7 @@ def get_model_list(dirname, key):
 
 train_resume = True
 
-iterations = trainer.resume(checkpoint_directory, hyperparameters=params) if train_resume else 0
+iterations = trainer.resume(checkpoint_directory, params) if train_resume else 0
 
 while True:
     for it, (images_a, images_b) in enumerate(zip(train_loader_a, train_loader_b)):
