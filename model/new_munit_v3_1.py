@@ -819,7 +819,7 @@ class MUNIT_Trainer(nn.Module):
         self.dis_a.load_state_dict(state_dict['a'])
         self.dis_b.load_state_dict(state_dict['b'])
         # Load optimizers
-        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer.pt'), map_location='cuda:0')
+        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer_vg.pt'), map_location='cuda:0')
         self.dis_opt.load_state_dict(state_dict['dis'])
         self.gen_opt.load_state_dict(state_dict['gen'])
         # Reinitilize schedulers
@@ -978,7 +978,7 @@ def get_model_list(dirname, key):
     last_model_name = gen_models[-1]
     return last_model_name
 
-train_resume = False
+train_resume = True
 
 iterations = trainer.resume(checkpoint_directory, params) if train_resume else 0
 
@@ -1020,8 +1020,8 @@ while True:
             trainer.save(checkpoint_directory, iterations)
             itera = iterations - (params['snapshot_save_iter'] - 1)
             if itera > 0:
-                os.remove(checkpoint_directory + '/gen_%08d.pt' % (itera))
-                os.remove(checkpoint_directory + '/dis_%08d.pt' % (itera))
+                os.remove(checkpoint_directory + '/gen_vg_%08d.pt' % (itera))
+                os.remove(checkpoint_directory + '/dis_vg_%08d.pt' % (itera))
 
         iterations += 1
         if iterations >= max_iter:
