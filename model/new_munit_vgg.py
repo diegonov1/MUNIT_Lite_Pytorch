@@ -60,13 +60,13 @@ params = {
 'recon_x_w': 10,                 # weight of image reconstruction loss
 'recon_s_w': 1,                  # weight of style reconstruction loss
 'recon_c_w': 1,                  # weight of content reconstruction loss
-'recon_x_cyc_w': 0,              # weight of explicit style augmented cycle consistency loss
-'vgg_w': 1,                      # weight of domain-invariant perceptual loss
+'recon_x_cyc_w': 10,              # weight of explicit style augmented cycle consistency loss
+'vgg_w': 0,                      # weight of domain-invariant perceptual loss
 
 # model options
 'gen': {
 'dim': 64,                         # number of filters in the bottommost layer
-'mlp_dim': 384,                    # number of filters in MLP
+'mlp_dim': 256,                    # number of filters in MLP
 'style_dim': 8,                    # length of style code
 'activ': 'relu',                   # activation function [relu/lrelu/prelu/selu/tanh]
 'n_downsample': 2,                 # number of downsampling layers in content encoder
@@ -1063,7 +1063,7 @@ def get_model_list(dirname, key):
     last_model_name = gen_models[-1]
     return last_model_name
 
-train_resume = True
+train_resume = False
 
 iterations = trainer.resume(checkpoint_directory, params) if train_resume else 0
 
@@ -1111,4 +1111,5 @@ while True:
         iterations += 1
         if iterations >= max_iter:
             sys.exit('Finish training')
+
 
