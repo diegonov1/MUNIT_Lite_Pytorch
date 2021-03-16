@@ -30,8 +30,8 @@ import torchvision.utils as vutils
 from torch.utils.data import DataLoader
 
 
-checkpoint_directory = '/home/diegushko/checkpoint/cezanne2photo'
-image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_images' #output images
+checkpoint_directory = '/home/diegushko/checkpoint/art2photo'
+image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_art' #output images
 
 device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
 
@@ -91,7 +91,7 @@ params = {
 'new_size': 384,                               # first resize the shortest image side to this size
 'crop_image_height': 384,                      # random crop image of this height
 'crop_image_width': 384,                       # random crop image of this width
-'data_root': '/home/diegushko/dataset/vangogh2photo'   # dataset folder location
+'data_root': '/home/diegushko/dataset/art2photo'   # dataset folder location
 }
 
 IMG_EXTENSIONS = [
@@ -1063,7 +1063,7 @@ def get_model_list(dirname, key):
     last_model_name = gen_models[-1]
     return last_model_name
 
-train_resume = True
+train_resume = False
 
 iterations = trainer.resume(checkpoint_directory, params) if train_resume else 0
 
