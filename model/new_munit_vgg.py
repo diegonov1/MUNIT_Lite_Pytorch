@@ -91,7 +91,7 @@ params = {
 'new_size': 384,                               # first resize the shortest image side to this size
 'crop_image_height': 384,                      # random crop image of this height
 'crop_image_width': 384,                       # random crop image of this width
-'data_root': '/home/diegushko/dataset/cezanne2photo'   # dataset folder location
+'data_root': '/home/diegushko/dataset/vangogh2photo'   # dataset folder location
 }
 
 IMG_EXTENSIONS = [
@@ -1063,7 +1063,7 @@ def get_model_list(dirname, key):
     last_model_name = gen_models[-1]
     return last_model_name
 
-train_resume = False
+train_resume = True
 
 iterations = trainer.resume(checkpoint_directory, params) if train_resume else 0
 
