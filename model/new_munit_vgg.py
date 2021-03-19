@@ -33,8 +33,8 @@ from torch.utils.data import DataLoader
 checkpoint_directory = '/home/diegushko/checkpoint/art2photo'
 image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_art' #output images
 
-device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
-
+device = 'cuda:2' if torch.cuda.is_available() else 'cpu'
+cuda_loc = 'cuda:2'
 
 params = {
 # logger options
@@ -894,17 +894,17 @@ class MUNIT_Trainer(nn.Module):
     def resume(self, checkpoint_dir, params):
         # Load generators
         last_model_name = get_model_list(checkpoint_dir, "gen")
-        state_dict = torch.load(last_model_name, map_location='cuda:1')
+        state_dict = torch.load(last_model_name, map_location=cuda_loc)
         self.gen_a.load_state_dict(state_dict['a'])
         self.gen_b.load_state_dict(state_dict['b'])
         iterations = int(last_model_name[-11:-3])
         # Load discriminators
         last_model_name = get_model_list(checkpoint_dir, "dis")
-        state_dict = torch.load(last_model_name, map_location='cuda:1')
+        state_dict = torch.load(last_model_name, map_location=cuda_loc)
         self.dis_a.load_state_dict(state_dict['a'])
         self.dis_b.load_state_dict(state_dict['b'])
         # Load optimizers
-        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer_vgg.pt'), map_location='cuda:1')
+        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer_vgg.pt'), map_location=cuda_loc)
         self.dis_opt.load_state_dict(state_dict['dis'])
         self.gen_opt.load_state_dict(state_dict['gen'])
         # Reinitilize schedulers
