@@ -30,10 +30,10 @@ import torchvision.utils as vutils
 from torch.utils.data import DataLoader
 
 
-checkpoint_directory = '/home/diegushko/checkpoint/art2photo'
+checkpoint_directory = '/home/diegushko/checkpoint/cezanne2photo'
 image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_art' #output images
 
-device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 
 params = {
@@ -91,7 +91,7 @@ params = {
 'new_size': 384,                               # first resize the shortest image side to this size
 'crop_image_height': 384,                      # random crop image of this height
 'crop_image_width': 384,                       # random crop image of this width
-'data_root': '/home/diegushko/dataset/art2photo'   # dataset folder location
+'data_root': '/home/diegushko/dataset/monet2photo'   # dataset folder location
 }
 
 IMG_EXTENSIONS = [
@@ -894,17 +894,17 @@ class MUNIT_Trainer(nn.Module):
     def resume(self, checkpoint_dir, params):
         # Load generators
         last_model_name = get_model_list(checkpoint_dir, "gen")
-        state_dict = torch.load(last_model_name, map_location='cuda:1')
+        state_dict = torch.load(last_model_name, map_location='cuda:0')
         self.gen_a.load_state_dict(state_dict['a'])
         self.gen_b.load_state_dict(state_dict['b'])
         iterations = int(last_model_name[-11:-3])
         # Load discriminators
         last_model_name = get_model_list(checkpoint_dir, "dis")
-        state_dict = torch.load(last_model_name, map_location='cuda:1')
+        state_dict = torch.load(last_model_name, map_location='cuda:0')
         self.dis_a.load_state_dict(state_dict['a'])
         self.dis_b.load_state_dict(state_dict['b'])
         # Load optimizers
-        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer_vgg.pt'), map_location='cuda:1')
+        state_dict = torch.load(os.path.join(checkpoint_dir, 'optimizer_vgg.pt'), map_location='cuda:0')
         self.dis_opt.load_state_dict(state_dict['dis'])
         self.gen_opt.load_state_dict(state_dict['gen'])
         # Reinitilize schedulers
@@ -1035,8 +1035,8 @@ def __write_images(image_outputs, display_image_num, file_name):
 
 def write_2images(image_outputs, display_image_num, image_directory, postfix):
     n = len(image_outputs)
-    __write_images(image_outputs[0:n//2], display_image_num, '%s/gen_a2b_vgg_%s.jpg' % (image_directory, postfix))
-    __write_images(image_outputs[n//2:n], display_image_num, '%s/gen_b2a_vgg_%s.jpg' % (image_directory, postfix))
+    __write_images(image_outputs[0:n//2], display_image_num, '%s/gen_a2b_new_%s.jpg' % (image_directory, postfix))
+    __write_images(image_outputs[n//2:n], display_image_num, '%s/gen_b2a_new_%s.jpg' % (image_directory, postfix))
 
 
 max_iter = params['max_iter']
@@ -1076,7 +1076,7 @@ while True:
             # Main training code
             trainer.dis_update(images_a, images_b, params)
             trainer.gen_update(images_a, images_b, params)
-            #torch.cuda.synchronize()
+            torch.cuda.synchronize()
 
         trainer.update_learning_rate()
 
