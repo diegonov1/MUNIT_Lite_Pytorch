@@ -46,7 +46,7 @@ params = {
 'vgg_model_path': '/home/diegushko/checkpoint/vgg',
 
 # optimization options
-'max_iter': 200000,             # maximum number of training iterations
+'max_iter': 300000,             # maximum number of training iterations
 'batch_size': 1,                 # batch size
 'weight_decay': 0.0001,          # weight decay
 'beta1': 0.5,                    # Adam parameter
@@ -91,7 +91,7 @@ params = {
 'new_size': 384,                               # first resize the shortest image side to this size
 'crop_image_height': 384,                      # random crop image of this height
 'crop_image_width': 384,                       # random crop image of this width
-'data_root': '/home/diegushko/dataset/monet2photo'   # dataset folder location
+'data_root': '/home/diegushko/dataset/vangogh2photo'   # dataset folder location
 }
 
 IMG_EXTENSIONS = [
