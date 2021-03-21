@@ -46,7 +46,7 @@ params = {
 'vgg_model_path': '/home/diegushko/checkpoint/vgg',
 
 # optimization options
-'max_iter': 200000,             # maximum number of training iterations
+'max_iter': 400000,             # maximum number of training iterations
 'batch_size': 1,                 # batch size
 'weight_decay': 0.0001,          # weight decay
 'beta1': 0.5,                    # Adam parameter
