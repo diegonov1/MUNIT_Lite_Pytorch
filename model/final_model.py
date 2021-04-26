@@ -30,11 +30,11 @@ import torchvision.utils as vutils
 from torch.utils.data import DataLoader
 
 
-checkpoint_directory = '/home/diegushko/checkpoint/art2photo'
-image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_art' #output images
+checkpoint_directory = '/home/diegushko/checkpoint/artsy2photo'
+image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_artsy' #output images
 
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-cuda_loc = 'cuda:0'
+device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+cuda_loc = 'cuda:1'
 
 params = {
 # logger options
@@ -91,7 +91,7 @@ params = {
 'new_size': 384,                               # first resize the shortest image side to this size
 'crop_image_height': 384,                      # random crop image of this height
 'crop_image_width': 384,                       # random crop image of this width
-'data_root': '/home/diegushko/dataset/art2photo'   # dataset folder location
+'data_root': '/home/diegushko/dataset/artsy2photo'   # dataset folder location
 }
 
 IMG_EXTENSIONS = [
@@ -1035,8 +1035,8 @@ def __write_images(image_outputs, display_image_num, file_name):
 
 def write_2images(image_outputs, display_image_num, image_directory, postfix):
     n = len(image_outputs)
-    __write_images(image_outputs[0:n//2], display_image_num, '%s/gen_a2b_vgg_%s.jpg' % (image_directory, postfix))
-    __write_images(image_outputs[n//2:n], display_image_num, '%s/gen_b2a_vgg_%s.jpg' % (image_directory, postfix))
+    __write_images(image_outputs[0:n//2], display_image_num, '%s/gen_a2b_new_%s.jpg' % (image_directory, postfix))
+    __write_images(image_outputs[n//2:n], display_image_num, '%s/gen_b2a_new_%s.jpg' % (image_directory, postfix))
 
 
 max_iter = params['max_iter']
@@ -1063,7 +1063,7 @@ def get_model_list(dirname, key):
     last_model_name = gen_models[-1]
     return last_model_name
 
-train_resume = True
+train_resume = False
 
 iterations = trainer.resume(checkpoint_directory, params) if train_resume else 0
 
@@ -1076,7 +1076,7 @@ while True:
             # Main training code
             trainer.dis_update(images_a, images_b, params)
             trainer.gen_update(images_a, images_b, params)
-            #torch.cuda.synchronize()
+            torch.cuda.synchronize()
 
         trainer.update_learning_rate()
 
