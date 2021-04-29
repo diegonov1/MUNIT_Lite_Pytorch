@@ -30,11 +30,11 @@ import torchvision.utils as vutils
 from torch.utils.data import DataLoader
 
 
-checkpoint_directory = '/home/diegushko/checkpoint/mix2photo'
-image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_mix' #output images
+checkpoint_directory = '/home/diegushko/checkpoint/mixlow2photo'
+image_directory = '/home/diegushko/github/MUNIT_Lite_Pytorch/out_mixlow' #output images
 
-device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
-cuda_loc = 'cuda:1'
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+cuda_loc = 'cuda:0'
 
 params = {
 # logger options
@@ -60,7 +60,7 @@ params = {
 'recon_x_w': 10,                 # weight of image reconstruction loss
 'recon_s_w': 1,                  # weight of style reconstruction loss
 'recon_c_w': 1,                  # weight of content reconstruction loss
-'recon_x_cyc_w': 10,              # weight of explicit style augmented cycle consistency loss
+'recon_x_cyc_w': 1,              # weight of explicit style augmented cycle consistency loss
 'vgg_w': 0,                      # weight of domain-invariant perceptual loss
 
 # model options
@@ -1063,7 +1063,7 @@ def get_model_list(dirname, key):
     last_model_name = gen_models[-1]
     return last_model_name
 
-train_resume = True
+train_resume = False
 
 iterations = trainer.resume(checkpoint_directory, params) if train_resume else 0
 
