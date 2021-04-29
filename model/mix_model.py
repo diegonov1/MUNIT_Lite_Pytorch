@@ -1063,7 +1063,7 @@ def get_model_list(dirname, key):
     last_model_name = gen_models[-1]
     return last_model_name
 
-train_resume = False
+train_resume = True
 
 iterations = trainer.resume(checkpoint_directory, params) if train_resume else 0
 
