@@ -57,10 +57,10 @@ params = {
 'step_size': 100000,             # how often to decay learning rate
 'gamma': 0.5,                    # how much to decay learning rate
 'gan_w': 1,                      # weight of adversarial loss
-'recon_x_w': 10,                 # weight of image reconstruction loss
-'recon_s_w': 1,                  # weight of style reconstruction loss
-'recon_c_w': 1,                  # weight of content reconstruction loss
-'recon_x_cyc_w': 1,              # weight of explicit style augmented cycle consistency loss
+'recon_x_w': 8,                  # weight of image reconstruction loss
+'recon_s_w': 2,                  # weight of style reconstruction loss
+'recon_c_w': 2,                  # weight of content reconstruction loss
+'recon_x_cyc_w': 2,              # weight of explicit style augmented cycle consistency loss
 'vgg_w': 0,                      # weight of domain-invariant perceptual loss
 
 # model options
