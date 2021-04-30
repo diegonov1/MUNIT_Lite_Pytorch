@@ -91,7 +91,7 @@ params = {
 'new_size': 384,                               # first resize the shortest image side to this size
 'crop_image_height': 384,                      # random crop image of this height
 'crop_image_width': 384,                       # random crop image of this width
-'data_root': '/home/diegushko/dataset/monet2photo'   # dataset folder location
+'data_root': '/home/diegushko/dataset/art2photo'   # dataset folder location
 }
 
 IMG_EXTENSIONS = [
