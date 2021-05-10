@@ -60,7 +60,7 @@ params = {
 'recon_x_w': 10,                 # weight of image reconstruction loss
 'recon_s_w': 1,                  # weight of style reconstruction loss
 'recon_c_w': 1,                  # weight of content reconstruction loss
-'recon_x_cyc_w': 1,              # weight of explicit style augmented cycle consistency loss
+'recon_x_cyc_w': 0,              # weight of explicit style augmented cycle consistency loss
 'vgg_w': 0,                      # weight of domain-invariant perceptual loss
 
 # model options
